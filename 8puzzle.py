@@ -140,7 +140,7 @@ def solvePuzzle_A(srcLayout, destLayout):
         curLayout = g_dict_layouts[curLayout]
         lst_steps.append(curLayout)
     lst_steps.reverse()
-    return 0, lst_steps, nodes_expand, nodes_number, g_dict_layouts_deep['123804765']
+    return 0, lst_steps, nodes_expand, nodes_number, g_dict_layouts_deep[newLayout]
 
 if __name__ == "__main__":
 	
@@ -156,10 +156,13 @@ if __name__ == "__main__":
     if(choice==1):
         ran=random.sample(range(0,9),9)#随机生成初始状态
         for i in ran:
-            srcLayout+=str(ran)
+            srcLayout+=str(i)
+        #print(srcLayout)
     else:
         print("请输入初始状态如283164705")
         srcLayout = input()
+        print(type(srcLayout))
+
     retCode, lst_steps, nodes_expand, nodes_number, deep = solvePuzzle_A(srcLayout, destLayout)
     
     if retCode != 0:
