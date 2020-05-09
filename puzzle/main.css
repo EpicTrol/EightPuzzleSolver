@@ -1,0 +1,12 @@
+.QPushButton {
+    color: white;
+    font: 'SimHei' 14px;
+    background-color: #169BD5;
+    border:none;
+    border-radius: 10px;
+    width: 140px;
+    height: 40px;
+}
+.QPushButton:active {
+    background-color: rgb(39, 126, 163);
+}
