@@ -6,11 +6,33 @@ Created on 2020年05月08日
 @description: 八数码实验的图形化界面
 '''
 import sys
-from PyQt5.QtWidgets import QApplication, QFrame, QGridLayout, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
-from PyQt5.QtGui import QFont, QIcon, QPixmap
-from PyQt5.QtCore import QRect, QSize, Qt
+import re
+import time
+from PyQt5.QtWidgets import QApplication, QFrame, QGridLayout, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLineEdit
+from PyQt5.QtGui import QFont, QIcon, QKeySequence, QPixmap
+from PyQt5.QtCore import QRect, QSize, QThread, QTimer, Qt, QObject
 from solver import Solver
 import random
+
+'''
+用于在子线程中对ui进行异步更新
+'''
+class UpdateObj(QObject):
+    def __init__(self, parent = None):
+        super().__init__()
+        self.parent = parent
+    
+    def show_ans(self):
+
+        # 解法的动态演示
+        for s in self.parent.solver.ans():
+            time.sleep(0.3)
+            for i, ch in enumerate(s):
+                self.parent.nums[i].setText(ch)
+        time.sleep(2)
+        for i, ch in enumerate(self.parent.start):
+            self.parent.nums[i].setText(ch)
+
 '''
 八数码图形界面
 '''
@@ -18,12 +40,15 @@ class Example(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.start = '1234 5678'
-        self.solver = Solver()
+        self.start = '2 3184765'
+        self.cnt = 8# 当前九宫格已经填入的数字的个数
+        self.solver = Solver(self.start)
         self.initUI()
         self.bindSlots()
         
-        
+    '''
+    布置所有组件
+    '''    
     def initUI(self):
         with open('./style.qss', encoding='utf8', mode='r') as f:
             self.qss = f.read()
@@ -35,7 +60,12 @@ class Example(QWidget):
         self.title.setObjectName('title')
         self.title.move(78, 52)
         self.setGeometry(300, 300, 800, 600)
-
+        
+        QLabel('最大搜索深度', self).setGeometry(260, 455, 95, 20)
+        self.max_depth = QLineEdit(self)
+        self.max_depth.setGeometry(QRect(350, 452, 50, 22))
+        self.max_depth.setText(str(self.solver.max_depth))
+        
         # 左侧按钮集
         self.lbtns = [
         QPushButton('深度优先搜索', self),
@@ -43,7 +73,7 @@ class Example(QWidget):
         QPushButton('启发式搜索1', self),
         QPushButton('启发式搜索2', self),
         QPushButton('启发式搜索3', self),
-        QPushButton('全部运行', self)
+        QPushButton('全部运行(F5)', self)
         ]
         # 右侧按钮集
         self.rbtns = [
@@ -54,6 +84,12 @@ class Example(QWidget):
         QPushButton('解法演示', self),
         QPushButton('开始游戏', self)
         ]
+        # 初始状态禁用
+        self.rbtns[3].setEnabled(False)
+        self.rbtns[4].setEnabled(False)
+        self.rbtns[5].setEnabled(False)
+
+        self.lbtns[5].setShortcut(QKeySequence("F5"))
         # 分别将两侧按钮集添加到两个垂直布局中
         self.ver_layout1 = QVBoxLayout()
         self.ver_layout2 = QVBoxLayout()
@@ -102,27 +138,136 @@ class Example(QWidget):
         self.descrip.setText('''手动输入的方法:陆续点击网格未确定的格子,\n依次填入数字1, 2 , 3, 4, 5, 6, 7, 8\nh1(n) =W(n) “不在位”的将牌数\nh2(n) = P(n)将牌“不在位”的距离和\nh3(n) = h(n)＝P(n)+3S(n)''')
         self.show()
 
+    '''
+    给必要的控件绑定槽函数
+    '''
     def bindSlots(self):
-        self.lbtns[0].clicked[bool].connect(self.run_dfs)
-        self.rbtns[0].clicked[bool].connect(self.random_state)
-        
+        self.lbtns[0].clicked.connect(self.run_dfs)
+        self.lbtns[1].clicked.connect(self.run_bfs)
+        self.lbtns[2].clicked.connect(self.run_h1)
+        self.lbtns[3].clicked.connect(self.run_h2)
+        self.lbtns[4].clicked.connect(self.run_h3)
+        self.lbtns[5].clicked.connect(self.run_all)
+        self.rbtns[0].clicked.connect(self.random_state)
+        self.rbtns[1].clicked.connect(self.manual_input)
+        self.rbtns[2].clicked.connect(self.clear)
+        self.max_depth.textChanged[str].connect(self.change_max_depth)
+        self.updater = UpdateObj(self)
+        self.myThread = QThread()
+        self.updater.moveToThread(self.myThread)
+        self.rbtns[4].clicked.connect(self.updater.show_ans)
+        self.myThread.start()
+
+
+    def change_max_depth(self, val):
+        if re.search('^\\d+$', val):
+            self.solver.max_depth = int(val)
+
+    '''
+    运行深度优先搜索算法,更新结果表格
+    '''        
     def run_dfs(self):
-        res, gen, expand = self.solver.dfs(self.start)
+        res, gen, expand = self.solver.dfs()
+        self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
         print(res, gen, expand)
         self.result.item(0, 1).setText(str(expand))
         self.result.item(1, 1).setText(str(gen))
+
+    '''
+    运行宽度优先搜索算法,更新结果表格
+    '''
+    def run_bfs(self):
+        res, gen, expand = self.solver.bfs()
+        self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
+        print(res, gen, expand)
+        self.result.item(0, 2).setText(str(expand))
+        self.result.item(1, 2).setText(str(gen))
+
+    '''
+    运行h1启发式搜索算法,更新结果表格
+    '''
+    def run_h1(self):
+        res, gen, expand = self.solver.h1()
+        self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
+        print(res, gen, expand)
+        self.result.item(0, 3).setText(str(expand))
+        self.result.item(1, 3).setText(str(gen))
+
+    '''
+    运行h2启发式搜索算法,更新结果表格
+    '''
+    def run_h2(self):
+        res, gen, expand = self.solver.h2()
+        self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
+        print(res, gen, expand)
+        self.result.item(0, 4).setText(str(expand))
+        self.result.item(1, 4).setText(str(gen))
+    
+    '''
+    运行h3启发式搜索算法,更新结果表格
+    '''
+    def run_h3(self):
+        res, gen, expand = self.solver.h3()
+        self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
+        print(res, gen, expand)
+        self.result.item(0, 5).setText(str(expand))
+        self.result.item(1, 5).setText(str(gen))
+
+    '''
+    运行所有搜索算法,更新结果表格
+    '''    
+    def run_all(self):
+        self.run_dfs()
+        self.run_bfs()
+        self.run_h1()
+        self.run_h2()
+        self.run_h3()
+
+    '''
+    清空结果表
+    '''
+    def clear(self):
+        for i in range(2):
+            for j in range(1, 6):
+                self.result.item(i, j).setText('')
+
+    '''
+    手动输入初始状态
+    '''
+    def manual_input(self):
+        self.clear()
+        # 清空九宫格的数字
+        for w in self.nums:
+            w.setText('')
+        self.start = ''
+        # 未输入完成前不允许执行搜索
+        for b in self.lbtns:
+            b.setEnabled(False)
+
+        # 进行输入
+        self.cnt = 0
+        for w in self.nums:
+            w.setEnabled(True)
+        # TODO
+        # 获取输入
+        for w in self.nums:
+            self.start += w.text()
+        # 输入完毕运行搜索
+        for b in self.lbtns:
+            b.setEnabled(False)
+        # TODO
+        pass
+
     ''' 
     生成随机状态
     '''
     def random_state(self):
         self.start = ''.join([str(i) for i in random.sample(range(0, 9), 9)]).replace('0', ' ')
+        self.solver.start = self.start
+        # 更新ui
         for i, w in enumerate(self.nums):
             w.setText(self.start[i])
-    '''
-    更新状态
-    '''
-    def updateGrid(self):
-        pass
+        self.rbtns[4].setEnabled(False)
 
 
 if __name__ == '__main__':
