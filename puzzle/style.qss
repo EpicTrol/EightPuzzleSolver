@@ -20,8 +20,10 @@
     font: 36px "黑体";
 }
 
-#puzzles QLabel{
+#puzzles QPushButton{
     font: 28px "黑体";
+    color: black;
+    border:none;
     background-color:white;
 }
 

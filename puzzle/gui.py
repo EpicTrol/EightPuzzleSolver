@@ -14,6 +14,30 @@ from PyQt5.QtCore import QRect, QSize, QThread, QTimer, Qt, QObject
 from solver import Solver
 import random
 
+class MyLabel(QPushButton):
+    def __init__(self, parent = None):
+        super().__init__()
+        self.parent = parent
+        self.setFixedSize(70, 70)
+
+    def input_num(self):
+        self.parent.cnt += 1
+        self.setText(str(self.parent.cnt))
+        self.setEnabled(False)
+        if self.parent.cnt == 8:
+            # 恢复搜索功能,禁用所有格子可点击
+            for btn in self.parent.lbtns:
+                btn.setEnabled(True)
+            tmp = ''
+            for w in self.parent.nums:
+                if w.text() == '':
+                    w.setText(' ')
+                    tmp += ' '
+                    w.setEnabled(False)
+                else:
+                    tmp += w.text()
+            self.parent.start = tmp
+            self.parent.solver.start = tmp
 '''
 用于在子线程中对ui进行异步更新
 '''
@@ -60,7 +84,7 @@ class Example(QWidget):
         self.title.setObjectName('title')
         self.title.move(78, 52)
         self.setGeometry(300, 300, 800, 600)
-        
+        self.setFixedSize(800, 600)
         QLabel('最大搜索深度', self).setGeometry(260, 455, 95, 20)
         self.max_depth = QLineEdit(self)
         self.max_depth.setGeometry(QRect(350, 452, 50, 22))
@@ -88,7 +112,6 @@ class Example(QWidget):
         self.rbtns[3].setEnabled(False)
         self.rbtns[4].setEnabled(False)
         self.rbtns[5].setEnabled(False)
-
         self.lbtns[5].setShortcut(QKeySequence("F5"))
         # 分别将两侧按钮集添加到两个垂直布局中
         self.ver_layout1 = QVBoxLayout()
@@ -101,11 +124,11 @@ class Example(QWidget):
         self.ver_layout1.setGeometry(QRect(87, 135, 140, 320))
         self.ver_layout2.setGeometry(QRect(572, 135, 140, 320))
 
-        # 八数码值标签的初始化
-        self.nums = [QLabel(self) for _ in range(9)]
+        # 八数码的牌子设置为初始状态
+        self.nums = [MyLabel(self) for _ in range(9)]
         for i, ch in enumerate(self.start):
-            self.nums[i].setAlignment(Qt.AlignCenter|Qt.AlignVCenter)# 设置文本居中
             self.nums[i].setText(ch)
+            self.nums[i].setEnabled(False)
         # 八数码棋盘
         self.puzzles = QFrame(self)
         self.puzzles.setObjectName('puzzles')
@@ -157,6 +180,10 @@ class Example(QWidget):
         self.updater.moveToThread(self.myThread)
         self.rbtns[4].clicked.connect(self.updater.show_ans)
         self.myThread.start()
+        for w in self.nums:
+            w.clicked.connect(w.input_num)
+
+
 
 
     def change_max_depth(self, val):
@@ -235,28 +262,17 @@ class Example(QWidget):
     手动输入初始状态
     '''
     def manual_input(self):
-        self.clear()
-        # 清空九宫格的数字
+        self.clear()# 清空表格
+        # 清空九宫格的数字,并设置为可点击,即允许输入
         for w in self.nums:
             w.setText('')
-        self.start = ''
-        # 未输入完成前不允许执行搜索
-        for b in self.lbtns:
-            b.setEnabled(False)
-
-        # 进行输入
-        self.cnt = 0
-        for w in self.nums:
             w.setEnabled(True)
-        # TODO
-        # 获取输入
-        for w in self.nums:
-            self.start += w.text()
-        # 输入完毕运行搜索
+        # 未输入完成前不允许执行搜索和解法演示
         for b in self.lbtns:
             b.setEnabled(False)
-        # TODO
-        pass
+        self.rbtns[4].setEnabled(False)
+        # 计数器清零
+        self.cnt = 0
 
     ''' 
     生成随机状态
