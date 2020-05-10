@@ -216,7 +216,7 @@ class Example(QWidget):
     运行h1启发式搜索算法,更新结果表格
     '''
     def run_h1(self):
-        res, gen, expand = self.solver.h1()
+        res, gen, expand = self.solver.hs1()
         self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
         print(res, gen, expand)
         self.result.item(0, 3).setText(str(expand))
@@ -226,7 +226,7 @@ class Example(QWidget):
     运行h2启发式搜索算法,更新结果表格
     '''
     def run_h2(self):
-        res, gen, expand = self.solver.h2()
+        res, gen, expand = self.solver.hs2()
         self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
         print(res, gen, expand)
         self.result.item(0, 4).setText(str(expand))
@@ -236,7 +236,7 @@ class Example(QWidget):
     运行h3启发式搜索算法,更新结果表格
     '''
     def run_h3(self):
-        res, gen, expand = self.solver.h3()
+        res, gen, expand = self.solver.hs3()
         self.rbtns[4].setEnabled(True if res else False)  # 是否允许进行解法演示
         print(res, gen, expand)
         self.result.item(0, 5).setText(str(expand))
