@@ -3,6 +3,18 @@
 - 深度优先搜索(depth-first-search)
 1.  G:=G0(G0=s), OPEN:=(s), CLOSED:=( ); 
 2.  LOOP:    IF OPEN=( ) THEN EXIT (FAIL); 
+3.  n:   =LAST(OPEN); 
+4.  IF GOAL(n) THEN EXIT (SUCCESS); 
+5.  REMOVE(n, OPEN), APPEND(n, CLOSED); 
+6.  IF DEPTH(n)≥Dm GO LOOP; 
+7.  EXPAND(n) →{mi}, G:   =ADD(mi, G); 
+8.  IF 目标在{mi}中 THEN EXIT(SUCCESS); 
+9.  APPEND(mj, OPEN), 并标记mj到n的指针; 
+10. GO LOOP; 
+
+- 宽度优先搜索(breadth-first-search)
+1.  G:=G0(G0=s), OPEN:=(s), CLOSED:=( ); 
+2.  LOOP:    IF OPEN=( ) THEN EXIT (FAIL); 
 3.  n:   =FIRST(OPEN); 
 4.  IF GOAL(n) THEN EXIT (SUCCESS); 
 5.  REMOVE(n, OPEN), ADD(n, CLOSED); 
@@ -11,9 +23,6 @@
 8.  IF 目标在{mi}中 THEN EXIT(SUCCESS); 
 9.  ADD(mj, OPEN), 并标记mj到n的指针; 
 10.  GO LOOP; 
-
-- 宽度优先搜索(breadth-first-search)
-
 
 + 启发式搜索算法
   （h1(n) =W(n) “不在位”的将牌数）

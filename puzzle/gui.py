@@ -8,7 +8,7 @@ Created on 2020年05月08日
 import sys
 import re
 import time
-from PyQt5.QtWidgets import QApplication, QFrame, QGridLayout, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLineEdit
+from PyQt5.QtWidgets import QApplication, QFrame, QGridLayout, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLineEdit,  QMessageBox
 from PyQt5.QtGui import QFont, QIcon, QKeySequence, QPixmap
 from PyQt5.QtCore import QRect, QSize, QThread, QTimer, Qt, QObject
 from solver import Solver
@@ -18,7 +18,7 @@ class MyLabel(QPushButton):
     def __init__(self, parent = None):
         super().__init__()
         self.parent = parent
-        self.setFixedSize(70, 70)
+        self.setFixedSize(60, 60)
 
     def input_num(self):
         self.parent.cnt += 1
@@ -67,6 +67,9 @@ class Example(QWidget):
         self.start = '2 3184765'
         self.cnt = 8# 当前九宫格已经填入的数字的个数
         self.solver = Solver(self.start)
+        self.updater = UpdateObj(self)
+        self.myThread = QThread()
+        self.updater.moveToThread(self.myThread)
         self.initUI()
         self.bindSlots()
         
@@ -104,14 +107,12 @@ class Example(QWidget):
         QPushButton('随机生成', self),
         QPushButton('手动输入', self),
         QPushButton('清空', self),
-        QPushButton('回退', self),
+        QPushButton('退出', self),
         QPushButton('解法演示', self),
-        QPushButton('开始游戏', self)
+        QPushButton('别点', self)
         ]
         # 初始状态禁用
-        self.rbtns[3].setEnabled(False)
         self.rbtns[4].setEnabled(False)
-        self.rbtns[5].setEnabled(False)
         self.lbtns[5].setShortcut(QKeySequence("F5"))
         # 分别将两侧按钮集添加到两个垂直布局中
         self.ver_layout1 = QVBoxLayout()
@@ -174,17 +175,18 @@ class Example(QWidget):
         self.rbtns[0].clicked.connect(self.random_state)
         self.rbtns[1].clicked.connect(self.manual_input)
         self.rbtns[2].clicked.connect(self.clear)
-        self.max_depth.textChanged[str].connect(self.change_max_depth)
-        self.updater = UpdateObj(self)
-        self.myThread = QThread()
-        self.updater.moveToThread(self.myThread)
+        self.rbtns[3].clicked.connect(self.close)
         self.rbtns[4].clicked.connect(self.updater.show_ans)
+        self.rbtns[5].clicked.connect(self.useless)
+        self.max_depth.textChanged[str].connect(self.change_max_depth)
         self.myThread.start()
         for w in self.nums:
             w.clicked.connect(w.input_num)
 
 
-
+    def useless(self):
+        for _ in range(20):
+            QMessageBox.about(self, '叫你别点', '欢迎大家学习人工智能导论')
 
     def change_max_depth(self, val):
         if re.search('^\\d+$', val):
