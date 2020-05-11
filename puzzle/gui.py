@@ -23,7 +23,7 @@ class MyLabel(QPushButton):
 
     def input_num(self):
         self.parent.cnt += 1
-        self.setText(str(self.parent.cnt))
+        self.setText(str(self.parent.cnt))  
         self.setEnabled(False)
         if self.parent.cnt == 8:
             # 恢复搜索功能,禁用所有格子可点击
@@ -65,9 +65,9 @@ class Example(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.start = '2 3184765'
+        self.start = '2164 8753'
         self.cnt = 8# 当前九宫格已经填入的数字的个数
-        self.solver = Solver(self.start)
+        self.solver = Solver(self.start, max_depth=20)
         self.updater = UpdateObj(self)
         self.myThread = QThread()
         self.updater.moveToThread(self.myThread)
@@ -160,7 +160,7 @@ class Example(QWidget):
         # 增添提示
         self.descrip = QLabel(self)
         self.descrip.setGeometry(QRect(260, 360, 300, 100))
-        self.descrip.setText('''手动输入的方法:陆续点击网格未确定的格子,\n依次填入数字1, 2 , 3, 4, 5, 6, 7, 8\nh1(n) =W(n) “不在位”的将牌数\nh2(n) = P(n)将牌“不在位”的距离和\nh3(n) = h(n)＝P(n)+3S(n)''')
+        self.descrip.setText('''最大搜索深度过大可能会导致搜索时间过长\n(特别是BFS),导致程序无响应(h1(n) =W(n) “不在位”的将牌数\nh2(n) = P(n)将牌“不在位”的距离和\nh3(n) = h(n)＝P(n)+3S(n)''')
         self.show()
 
     '''

@@ -70,14 +70,6 @@ class Solver:
         arr = [char for char in n]
         idx = arr.index(' ')# 空格的索引位置
         # 与四个方向相邻的将牌交换
-        if idx not in [2, 5, 8]:
-            arr[idx], arr[idx + 1] = arr[idx + 1], arr[idx]# 与右方交换位置
-            yield ''.join(arr)
-            arr[idx], arr[idx + 1] = arr[idx + 1], arr[idx]
-        if idx not in [0, 3, 6]:
-            arr[idx], arr[idx - 1] = arr[idx - 1], arr[idx]# 与左方交换位置
-            yield ''.join(arr)
-            arr[idx], arr[idx - 1] = arr[idx - 1], arr[idx]
         if idx < 6:
             arr[idx], arr[idx + 3] = arr[idx + 3], arr[idx]# 与下方交换位置
             yield ''.join(arr)
@@ -86,6 +78,14 @@ class Solver:
             arr[idx], arr[idx - 3] = arr[idx - 3], arr[idx]#与上方交换位置
             yield ''.join(arr)
             arr[idx], arr[idx - 3] = arr[idx - 3], arr[idx]# 还原位置
+        if idx not in [2, 5, 8]:
+            arr[idx], arr[idx + 1] = arr[idx + 1], arr[idx]# 与右方交换位置
+            yield ''.join(arr)
+            arr[idx], arr[idx + 1] = arr[idx + 1], arr[idx]
+        if idx not in [0, 3, 6]:
+            arr[idx], arr[idx - 1] = arr[idx - 1], arr[idx]# 与左方交换位置
+            yield ''.join(arr)
+            arr[idx], arr[idx - 1] = arr[idx - 1], arr[idx]
 
     '''
     :param self.start 初始状态,字符串类型. 格式如:'1234567 8',对应的九宫格如下:
@@ -95,7 +95,7 @@ class Solver:
     :return 返回的第一个值是是否找到解路，返回的第二个值是生成的节点数, 第三个值是被扩展的节点数
     '''
     def dfs(self):
-        cnt_of_gen = 0# 生成的节点数
+        cnt_of_gen = 1# 生成的节点数
         cnt_of_expanded = 0# 被扩展的节点数
         open_list = [self.start]
         close_list = []
@@ -133,7 +133,7 @@ class Solver:
     :return 返回的第一个值是是否找到解路，返回的第二个值是生成的节点数, 第三个值是被扩展的节点数
     '''
     def bfs(self):
-        cnt_of_gen = 0# 生成的节点数
+        cnt_of_gen = 1# 生成的节点数
         cnt_of_expanded = 0# 被扩展的节点数
         open_list = [self.start]
         close_list = []
@@ -204,7 +204,7 @@ class Solver:
     :return 返回的第一个值是是否找到解路，返回的第二个值是生成的节点数, 第三个值是被扩展的节点数
     '''
     def Astar(self, h):
-        cnt_of_gen = 0# 生成的节点数
+        cnt_of_gen = 1# 生成的节点数
         cnt_of_expanded = 0# 被扩展的节点数
         open_list = [self.start]
         close_list = []
@@ -251,7 +251,7 @@ class Solver:
                         return True, cnt_of_gen, cnt_of_expanded + 1
                     open_list.append(s)
                     expanded = True
-            sorted(open_list, key = lambda x : -self.G[x].f)# 按评价函数f从大到小排序
+            open_list = sorted(open_list, key = lambda x : -self.G[x].f)# 按评价函数f从大到小排序
             if expanded:
                 cnt_of_expanded += 1
         return False, cnt_of_gen, cnt_of_expanded
@@ -293,71 +293,52 @@ class Solver:
 
     '''
     启发式搜索的启发函数3
-    S(n)是对节点n中将牌排列顺序的计分值
-    规定对非中心位置的将牌, 顺某一方向检查,
-    若某一将牌后面跟的后继者和目标状态相应将牌的顺序相比
-    不一致则该将牌估分取2 一致时则估分取0
-    对中心位置有将牌时估分取1,无将牌时估分值取0
-    所有非中心位置每个将牌估分总和加上中心位置的估分值为S(n)
-    此处将检查方向定义为从左上角出发, 顺时针走一圈,最终回到左上角, 由于目标状态如下:
-    1 2 3 
-    8   4
-    7 6 5
-    则检查方向是1->2->3->4->5->6->7->8->1
-    所以数字为i的将牌在目标状态下的后继者为i+1(如果i == 8, 则后继为1)
+    I:*ACDEFGH
+    T:ABCDEFGH
+    使[当前点，后继点]组成如下数对
+    目标状态的数对：[A,B], [B,C], [C,D], [D,E], [E,F], [F,G], [G,H], [H,A]
+    当前状态的数对：[A,C], [C,D], [D,E], [E,F], [F,G], [G,H], [H,*]
+    ([*,A] 不考虑，因为不存在*这样的前继)
+    其中有2对是当前点相同，后继点不同的：[A,C], [H,*]    因此 2*2=4分;
+    再把S乘以3：3*(1+2*2）=15分;
+    总得分h=P+3S=2+15=17分
+    再通过求所有情况的每一步的总花费f=g+h就可以重新对open表排序来进行选择最优策略了。
     '''
     def h3(self, n):
         S = 0
-        check = ''
-        true = '12345678'
-        for i in [0,1,2,5,8,7,6,4]:
-            check += n[i]
-        check = check.replace(' ', '')
-        for i in range(len(check)-1):
-            if int(check[i]) + 1 == 9:
-                S += (2 if check[i+1] != '1' else 0)
-            else:
-                S += (2 if int(check[i+1]) != int(check[i]) + 1 else 0)
+        check_order = [0, 1, 2, 5, 8, 7, 6, 3, 0]
+        for i in range(1, 9):
+            cur = n[check_order[i - 1]]# i-1是当前牌子,i是后继牌子
+            if cur != ' ':
+                nxt = n[check_order[i]]
+                if cur == '8':
+                    if nxt != '1':
+                        S += 2
+                elif str(int(cur) + 1 ) != nxt:
+                    S += 2
         if n[4] != ' ':
             S += 1
         return self.h2(n) + 3 * S
 
 # 本模块的测试入口函数
 if __name__ == "__main__":
-    s = Solver('2831647 5', max_depth=5)
-    # print('启发式搜索:')
-    # flag, cnt_of_gen, cnt_of_expanded = s.hs3()
-    # print('')
-    # print('最大搜索深度:', s.max_depth)
-    # print('找到解:', flag)
-    # print('生成节点数:', cnt_of_gen)
-    # print('扩展节点数:', cnt_of_expanded)
-    # if flag:
-    #     print('逐行打印解路')
-    #     for state in s.ans():
-    #         for i in range(3):
-    #             for j in range(3):
-    #                 print(state[3 * i + j], end=' ')
-    #             print()
-    #         print()
+    s = Solver('2164 8753', max_depth=30)
+    print('启发式搜索:')
     flag, cnt_of_gen, cnt_of_expanded = s.hs3()
-    print('初始状态:')
-    for i in range(3):
-        for j in range(3):
-            print(s.start[3 * i + j], end=' ')
-        print()
-    print()
-    for k in s.G:
-        sstr = s.G[k].data
-        for i in range(3):
-            for j in range(3):
-                print(sstr[3 * i + j], end=' ')
+    print('')
+    print('最大搜索深度:', s.max_depth)
+    print('找到解:', flag)
+    print('生成节点数:', cnt_of_gen)
+    print('扩展节点数:', cnt_of_expanded)
+    if flag:
+        print('逐行打印解路')
+        for state in s.ans():
+            for i in range(3):
+                for j in range(3):
+                    print(state[3 * i + j], end=' ')
+                print()
             print()
-        print('--------------')
-        print('h1 =', s.h1(sstr))
-        print('h2 =', s.h2(sstr))
-        print('h3 =', s.h3(sstr))
-        print('==============')
+
 
 
     
