@@ -1,6 +1,7 @@
 * {
     font: 14px "黑体";
 }
+
 .QPushButton {
     color: white;
     font: 14px "黑体";
@@ -10,6 +11,7 @@
     width: 140px;
     height: 40px;
 }
+
 .QPushButton:pressed {
     background-color: rgb(39, 126, 163);
 }
@@ -18,15 +20,22 @@
     font: 36px "黑体";
 }
 
-#puzzles QLabel{
+#puzzles QPushButton{
     font: 28px "黑体";
+    color: black;
+    border:none;
     background-color:white;
 }
 
 QTableWidget::item {
     text-align:center;
 }
+
 QTableWidget::item:active {
     color:black;
     background: white;
+}
+
+QPushButton:disabled {
+    background-color: rgb(126, 126, 126);
 }
