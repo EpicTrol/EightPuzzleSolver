@@ -31,7 +31,7 @@ class Node:
 包含五个搜索算法的八数码求解器类
 '''
 class Solver:
-    def __init__(self, start, target='1238 4765', max_depth=3):
+    def __init__(self, start, target='1238 4765', max_depth=9):
         self.start = start
         self.target = target
         self.max_depth = max_depth
@@ -45,11 +45,12 @@ class Solver:
     def __init__(self, start, **kwargs):
         self.start = start
         self.target = '1238 4765'
-        self.max_depth = 3
         if 'target' in kwargs:
             self.target = kwargs['target']
         if 'max_depth' in kwargs:
             self.max_depth = kwargs['max_depth']
+        else:
+            self.max_depth = 9#默认值
         '''
         self.G保存搜索图,用于查找解路 
         字典类型,保存状态结点, key=状态字符串, value=状态结点
@@ -207,7 +208,7 @@ class Solver:
         cnt_of_expanded = 0# 被扩展的节点数
         open_list = [self.start]
         close_list = []
-        self.G = {self.start:Node(self.start)}# 搜索图
+        self.G = {self.start:Node(self.start, 0, f = h(self.start))}# 搜索图
         while open_list:
             n = open_list.pop()
             # 找到解
@@ -222,16 +223,19 @@ class Solver:
             for s in self.succ(n):
                 # 如果后继结点已经出现过,则考虑修改cost和父指针,不新建结点
                 if s in open_list:
-                    tmp = self.G[n].cost + 1 + h(s)
-                    if tmp < self.G[s].f:
+                    # 评价函数
+                    f = self.G[n].cost + 1 + h(s)
+                    if f < self.G[s].f:
                         self.G[s].cost = self.G[n].cost + 1
-                        self.G[s].f = tmp
+                        self.G[s].f = f
                         self.G[s].parent = self.G[n]
                 elif s in close_list:
-                    tmp = self.G[n].cost + 1 + h(s)
-                    if tmp < self.G[s].f:
+                    f = self.G[n].cost + 1 + h(s)
+                    # 评价函数值更低,更新父指针
+                    if f < self.G[s].f:
+                        # fixme
                         self.G[s].cost = self.G[n].cost + 1
-                        self.G[s].f = tmp
+                        self.G[s].f = f
                         self.G[s].parent = self.G[n]
                         # 可能后继结点的指针需要修改,将它们加到open表中
                         for child in self.succ(s):
@@ -321,23 +325,41 @@ class Solver:
 # 本模块的测试入口函数
 if __name__ == "__main__":
     s = Solver('2831647 5', max_depth=5)
-    print('启发式搜索:')
+    # print('启发式搜索:')
+    # flag, cnt_of_gen, cnt_of_expanded = s.hs3()
+    # print('')
+    # print('最大搜索深度:', s.max_depth)
+    # print('找到解:', flag)
+    # print('生成节点数:', cnt_of_gen)
+    # print('扩展节点数:', cnt_of_expanded)
+    # if flag:
+    #     print('逐行打印解路')
+    #     for state in s.ans():
+    #         for i in range(3):
+    #             for j in range(3):
+    #                 print(state[3 * i + j], end=' ')
+    #             print()
+    #         print()
     flag, cnt_of_gen, cnt_of_expanded = s.hs3()
-    print('')
-    print('最大搜索深度:', s.max_depth)
-    print('找到解:', flag)
-    print('生成节点数:', cnt_of_gen)
-    print('扩展节点数:', cnt_of_expanded)
-    if flag:
-        print('逐行打印解路')
-        for state in s.ans():
-            for i in range(3):
-                for j in range(3):
-                    print(state[3 * i + j], end=' ')
-                print()
+    print('初始状态:')
+    for i in range(3):
+        for j in range(3):
+            print(s.start[3 * i + j], end=' ')
+        print()
+    print()
+    for k in s.G:
+        sstr = s.G[k].data
+        for i in range(3):
+            for j in range(3):
+                print(sstr[3 * i + j], end=' ')
             print()
+        print('--------------')
+        print('h1 =', s.h1(sstr))
+        print('h2 =', s.h2(sstr))
+        print('h3 =', s.h3(sstr))
+        print('==============')
 
 
-                
+    
 
  

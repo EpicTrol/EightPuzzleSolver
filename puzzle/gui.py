@@ -6,12 +6,13 @@ Created on 2020年05月08日
 @description: 八数码实验的图形化界面
 '''
 import sys
+import os
 import re
 import time
 from PyQt5.QtWidgets import QApplication, QFrame, QGridLayout, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QLineEdit,  QMessageBox
 from PyQt5.QtGui import QFont, QIcon, QKeySequence, QPixmap
 from PyQt5.QtCore import QRect, QSize, QThread, QTimer, Qt, QObject
-from solver import Solver
+from puzzle.solver import Solver
 import random
 
 class MyLabel(QPushButton):
@@ -77,11 +78,11 @@ class Example(QWidget):
     布置所有组件
     '''    
     def initUI(self):
-        with open('./style.qss', encoding='utf8', mode='r') as f:
+        with open(os.path.dirname(__file__)+'/res/style.qss', encoding='utf8', mode='r') as f:
             self.qss = f.read()
         self.setStyleSheet(self.qss)# 应用qss样式表
         self.setWindowTitle('八数码实验')
-        self.setWindowIcon(QIcon('8puzzle.png'))  # 设置应用图标
+        self.setWindowIcon(QIcon(os.path.dirname(__file__)+'/res/8puzzle.png'))  # 设置应用图标
 
         self.title = QLabel('八数码问题的实验程序', self)
         self.title.setObjectName('title')
@@ -154,7 +155,7 @@ class Example(QWidget):
         # 设置logo
         self.logo = QLabel(self)
         self.logo.setGeometry(QRect(600, 10, 90, 100))
-        jpg = QPixmap('scnulogo.png').scaled(self.logo.width(), self.logo.height())
+        jpg = QPixmap(os.path.dirname(__file__)+'/res/scnulogo.png').scaled(self.logo.width(), self.logo.height())
         self.logo.setPixmap(jpg)
         # 增添提示
         self.descrip = QLabel(self)
