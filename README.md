@@ -72,7 +72,7 @@ gui原型图
 
 1. 已安装pyQt5,如果没有安装,使用pip命令安装:`pip install pyQt5`
 
-2. 切换到项目文件夹, 命令行输入`python -m puzzle`
+2. 切换到项目文件夹puzzle, 命令行输入`python gui.py`
 
     
 
