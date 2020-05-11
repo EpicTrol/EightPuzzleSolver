@@ -58,7 +58,7 @@ class Solver:
         self.G = {}
 
     '''
-    状态结点n的后继结点
+    状态结点n的后继结点的生成器
     用法: 
     for node in succ(n):
         #...
@@ -165,6 +165,7 @@ class Solver:
 
     
     '''
+    使用了h1评价函数的启发式搜索算法(Heuristic Search)
     :param self.start 初始状态,字符串类型. 格式如:'1234567 8',对应的九宫格如下:
     1 2 3
     4 5 6 
@@ -175,6 +176,7 @@ class Solver:
         return self.Astar(self.h1)
 
     '''
+    使用了h2评价函数的启发式搜索算法(Heuristic Search)
     :param self.start 初始状态,字符串类型. 格式如:'1234567 8',对应的九宫格如下:
     1 2 3
     4 5 6 
@@ -185,7 +187,7 @@ class Solver:
         return self.Astar(self.h2)
 
     '''
-    h3(n) = h(n)＝P(n)+3S(n)
+    使用了h3评价函数的启发式搜索算法(Heuristic Search)
     :param self.start 初始状态,字符串类型. 格式如:'1234567 8',对应的九宫格如下:
     1 2 3
     4 5 6 
@@ -195,6 +197,11 @@ class Solver:
     def hs3(self):
         return self.Astar(self.h3)
 
+    '''
+    启发式搜索A*算法框架
+    :param h: h是一个启发函数,h传入一个状态字符串,返回一个int值,表示启发评分
+    :return 返回的第一个值是是否找到解路，返回的第二个值是生成的节点数, 第三个值是被扩展的节点数
+    '''
     def Astar(self, h):
         cnt_of_gen = 0# 生成的节点数
         cnt_of_expanded = 0# 被扩展的节点数
@@ -257,6 +264,9 @@ class Solver:
         while solve:
             yield solve.pop()
 
+    '''
+    启发式搜索的启发函数1
+    '''
     def h1(self, n):
         W = 0
         for i in range(9):
@@ -265,6 +275,9 @@ class Solver:
             W += (1 if n[i] != self.target[i] else 0)
         return W
 
+    '''
+    启发式搜索的启发函数2
+    '''
     def h2(self, n):
         P = 0
         for i in range(9):
@@ -275,6 +288,7 @@ class Solver:
         return P
 
     '''
+    启发式搜索的启发函数3
     S(n)是对节点n中将牌排列顺序的计分值
     规定对非中心位置的将牌, 顺某一方向检查,
     若某一将牌后面跟的后继者和目标状态相应将牌的顺序相比
@@ -307,6 +321,7 @@ class Solver:
 # 本模块的测试入口函数
 if __name__ == "__main__":
     s = Solver('2831647 5', max_depth=5)
+    print('启发式搜索:')
     flag, cnt_of_gen, cnt_of_expanded = s.hs3()
     print('')
     print('最大搜索深度:', s.max_depth)

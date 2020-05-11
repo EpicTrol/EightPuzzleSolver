@@ -39,7 +39,7 @@ class MyLabel(QPushButton):
             self.parent.start = tmp
             self.parent.solver.start = tmp
 '''
-用于在子线程中对ui进行异步更新
+工具类, 用于在子线程中对ui进行异步更新
 '''
 class UpdateObj(QObject):
     def __init__(self, parent = None):
@@ -184,16 +184,22 @@ class Example(QWidget):
             w.clicked.connect(w.input_num)
 
 
+    '''
+    用来皮一下的函数
+    '''
     def useless(self):
         for _ in range(20):
             QMessageBox.about(self, '叫你别点', '欢迎大家学习人工智能导论')
 
+    '''
+    根据val更改最大搜索深度
+    '''
     def change_max_depth(self, val):
         if re.search('^\\d+$', val):
             self.solver.max_depth = int(val)
 
     '''
-    运行深度优先搜索算法,更新结果表格
+    运行深度优先搜索算法,调用了Solver类的dfs方法,更新结果表格
     '''        
     def run_dfs(self):
         res, gen, expand = self.solver.dfs()
@@ -203,7 +209,7 @@ class Example(QWidget):
         self.result.item(1, 1).setText(str(gen))
 
     '''
-    运行宽度优先搜索算法,更新结果表格
+    运行宽度优先搜索算法,调用了Solver类的bfs算法,更新结果表格
     '''
     def run_bfs(self):
         res, gen, expand = self.solver.bfs()
@@ -213,7 +219,7 @@ class Example(QWidget):
         self.result.item(1, 2).setText(str(gen))
 
     '''
-    运行h1启发式搜索算法,更新结果表格
+    运行h1启发式搜索算法,调用了Solver类的hs1方法,更新结果表格
     '''
     def run_h1(self):
         res, gen, expand = self.solver.hs1()
@@ -223,7 +229,7 @@ class Example(QWidget):
         self.result.item(1, 3).setText(str(gen))
 
     '''
-    运行h2启发式搜索算法,更新结果表格
+    运行h2启发式搜索算法,调用了Solver类的hs2方法,更新结果表格
     '''
     def run_h2(self):
         res, gen, expand = self.solver.hs2()
@@ -233,7 +239,7 @@ class Example(QWidget):
         self.result.item(1, 4).setText(str(gen))
     
     '''
-    运行h3启发式搜索算法,更新结果表格
+    运行h3启发式搜索算法,调用了Solver类的hs1方法,更新结果表格
     '''
     def run_h3(self):
         res, gen, expand = self.solver.hs3()
