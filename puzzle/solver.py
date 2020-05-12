@@ -112,7 +112,7 @@ class Solver:
             expanded = False
             # 遍历后继状态
             for s in self.succ(n):
-                if s not in close_list:
+                if s not in self.G:
                     # 对结点n进行扩展,搜索图添加s结点
                     self.G[s] = Node(s, self.G[n].cost + 1, self.G[n])
                     # print(s)# debug
@@ -151,7 +151,7 @@ class Solver:
             # 遍历后继状态
             for s in self.succ(n):
                 # 如果后继结点已经出现过,则考虑修改cost和父指针,不新建结点
-                if s not in close_list:
+                if s not in self.G:
                     # 对结点n进行扩展,搜索图添加s结点
                     self.G[s] = Node(s, self.G[n].cost + 1, self.G[n])
                     # print(s)# debug
